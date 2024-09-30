@@ -1,6 +1,6 @@
 substitutions:
   name: esphome-web-b1efa4
-  friendly_name: Button Lights With Screen
+  friendly_name: Control Panel
 
 esphome:
   name: ${name}
@@ -18,7 +18,7 @@ esp32:
 
 # Enable logging
 logger:
-  level: ERROR
+  level: INFO
   
 
 # Enable Home Assistant API
@@ -34,6 +34,7 @@ improv_serial:
 wifi:
   # Set up a wifi access point
   ap: {}
+  
 
 # In combination with the `ap` this allows the user
 # to provision wifi credentials to the device via WiFi AP.
@@ -49,14 +50,18 @@ esp32_improv:
   authorizer: none
 
 # To have a "next url" for improv serial
-web_server:
-
+# web_server:
 
 globals:
   - id: sequence
     type: int
     initial_value: "0"
     restore_value: "False"
+
+time:
+  - platform: homeassistant
+    id: esptime
+    timezone: "America/Chicago"
 
 # These components signal presses of the various buttons
 binary_sensor:
@@ -302,14 +307,69 @@ display:
       const char *s3 = id(display_small_3).state.c_str();
       const char *s4 = id(display_small_4).state.c_str();
 
-      it.printf(0, 0, id(small), "%s", s1);
-      it.printf(0, 16, id(small), "%s", s2);
-      it.printf(0, 32, id(small), "%s", s3);
-      it.printf(0, 48, id(small), "%s", s4);
-      it.printf(0, 0, id(medium), "%s", m1);
-      it.printf(0, 16, id(medium), "%s", m2);
-      it.printf(0, 32, id(medium), "%s", m3);
-      it.printf(0, 0, id(large), "%s", l1);
+      const char *tfs1 = id(time_format_s1).state.c_str();
+      const char *tfs2 = id(time_format_s2).state.c_str();
+      const char *tfs3 = id(time_format_s3).state.c_str();
+      const char *tfs4 = id(time_format_s4).state.c_str();
+      const char *tfm1 = id(time_format_m1).state.c_str();
+      const char *tfm2 = id(time_format_m2).state.c_str();
+      const char *tfm3 = id(time_format_m3).state.c_str();
+      const char *tfl1 = id(time_format_l1).state.c_str();
+
+      char now[17];
+
+      struct tm c_tm = id(esptime).now().to_c_tm();
+      
+      if (!strcmp(s1, "") && strcmp(tfs1, "")) {
+          strftime(now, 17, tfs1, &c_tm);
+          it.printf(0, 0, id(small), "%s", now);
+      } else {
+        it.printf(0, 0, id(small), "%s", s1);
+      }
+      if (!strcmp(s2, "") && strcmp(tfs2, "")) {
+          strftime(now, 17, tfs2, &c_tm);
+          it.printf(0, 16, id(small), "%s", now);
+      } else {
+        it.printf(0, 16, id(small), "%s", s2);
+      }
+      if (!strcmp(s3, "") && strcmp(tfs3, "")) {
+          strftime(now, 17, tfs3, &c_tm);
+          it.printf(0, 32, id(small), "%s", now);
+      } else {
+        it.printf(0, 32, id(small), "%s", s3);
+      }
+      if (!strcmp(s4, "") && strcmp(tfs4, "")) {
+          strftime(now, 17, tfs4, &c_tm);
+          it.printf(0, 48, id(small), "%s", now);
+      } else {
+        it.printf(0, 48, id(small), "%s", s4);
+      }
+      if (!strcmp(m1, "") && strcmp(tfm1, "")) {
+          strftime(now, 17, tfm1, &c_tm);
+          it.printf(0, 0, id(medium), "%s", now);
+      } else {
+        it.printf(0, 0, id(medium), "%s", m1);
+      }
+      if (!strcmp(m2, "") && strcmp(tfm2, "")) {
+          strftime(now, 17, tfm2, &c_tm);
+          it.printf(0, 16, id(medium), "%s", now);
+      } else {
+        it.printf(0, 16, id(medium), "%s", m2);
+      }
+      if (!strcmp(m3, "") && strcmp(tfm3, "")) {
+          strftime(now, 17, tfm3, &c_tm);
+          it.printf(0, 32, id(medium), "%s", now);
+      } else {
+        it.printf(0, 32, id(medium), "%s", m3);
+      }      
+      if (!strcmp(l1, "") && strcmp(tfl1, "")) {
+          strftime(now, 17, tfl1, &c_tm);
+          it.printf(0, 0, id(large), "%s", now);
+      } else {
+        it.printf(0, 0, id(large), "%s", l1);
+      }
+
+
 
     update_interval: 1s
     flip_x: False
@@ -395,6 +455,70 @@ text:
     on_value:
       then:
         - component.update: disp
+  - platform: template
+    id: time_format
+    name: Time format
+    optimistic: true
+    mode: TEXT
+    initial_value: "%H:%M"
+    restore_value: True
+  - platform: template
+    id: time_format_s1
+    name: "Time format for S1"
+    optimistic: true
+    mode: TEXT
+    initial_value: ""
+    restore_value: true
+  - platform: template
+    id: time_format_s2
+    name: "Time format for S2"
+    optimistic: true
+    mode: TEXT
+    initial_value: ""
+    restore_value: true
+  - platform: template
+    id: time_format_s3
+    name: "Time format for S3"
+    optimistic: true
+    mode: TEXT
+    initial_value: ""
+    restore_value: true
+  - platform: template
+    id: time_format_s4
+    name: "Time format for S4"
+    optimistic: true
+    mode: TEXT
+    initial_value: ""
+    restore_value: true
+  - platform: template
+    id: time_format_m1
+    name: "Time format for M1"
+    optimistic: true
+    mode: TEXT
+    initial_value: ""
+    restore_value: true
+  - platform: template
+    id: time_format_m2
+    name: "Time format for M2"
+    optimistic: true
+    mode: TEXT
+    initial_value: ""
+    restore_value: true
+  - platform: template
+    id: time_format_m3
+    name: "Time format for M3"
+    optimistic: true
+    mode: TEXT
+    initial_value: ""
+    restore_value: true
+  - platform: template
+    id: time_format_l1
+    name: "Time format for L1"
+    optimistic: true
+    mode: TEXT
+    initial_value: ""
+    restore_value: true
+
 
 # To clear the screen, best do this before changing
 # the line format used
@@ -429,5 +553,3 @@ button:
         - text.set:
             id: display_large_1
             value: ""                  
-
-
